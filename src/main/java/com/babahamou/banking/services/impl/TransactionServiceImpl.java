@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService  {
 
-    private final TransactionRepository repository;
+    private final TransactionRepository transactionRepository;
     private final ObjectsValidator<TransactionDto> validator;
     @Override
     public Integer save(TransactionDto dto) {
@@ -27,12 +27,12 @@ public class TransactionServiceImpl implements TransactionService  {
         BigDecimal transactionMultiplier =  BigDecimal.valueOf(getTransactionMultiplier(transaction.getType()));
         BigDecimal amount = transaction.getAmount().multiply(transactionMultiplier);
         transaction.setAmount(amount);
-        return repository.save(transaction).getId();
+        return transactionRepository.save(transaction).getId();
     }
 
     @Override
     public List<TransactionDto> findAll() {
-        return repository.findAll()
+        return transactionRepository.findAll()
                 .stream()
                 .map(TransactionDto::fromEntity)
                 .collect(Collectors.toList());
@@ -40,7 +40,7 @@ public class TransactionServiceImpl implements TransactionService  {
 
     @Override
     public TransactionDto findById(Integer id) {
-        return repository.findById(id)
+        return transactionRepository.findById(id)
                 .map(TransactionDto::fromEntity)
                 .orElseThrow(()-> new EntityNotFoundException("no transaction was found for id : "+id));
     }
@@ -48,11 +48,19 @@ public class TransactionServiceImpl implements TransactionService  {
     @Override
     public void delete(Integer id) {
         // todo check delete..
-        repository.deleteById(id);
+        transactionRepository.deleteById(id);
 
     }
 
     private int getTransactionMultiplier(TransactionType type){
         return TransactionType.TRANSFER == type ? -1 : 1;
+    }
+
+    @Override
+    public List<TransactionDto> findAllByUserId(Integer userId) {
+        return transactionRepository.findAllByUserId(userId)
+                .stream()
+                .map(TransactionDto::fromEntity)
+                .collect(Collectors.toList());
     }
 }

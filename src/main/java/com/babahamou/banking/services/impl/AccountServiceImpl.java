@@ -20,37 +20,50 @@ import java.util.stream.Collectors;
 public class AccountServiceImpl implements AccountService {
 
     private final ObjectsValidator<AccountDto> validator;
-    private final AccountRepository repository;
+    private final AccountRepository accountRepository;
     @Override
     public Integer save(AccountDto dto) {
-        if (dto.getId() != null){
+      /*  if (dto.getId() != null){
             throw new OperationNonPermittedException(
-                    "account canot be updated..",
+                    "account cannot be updated..",
                     "save account..",
-                    "acount..",
+                    "account..",
                     "updated not permitted.."
             );
-        }
+        }*/
         validator.validate(dto);
         Account account = AccountDto.toEntity(dto);
+        boolean userHasAlreadyAnAccount = accountRepository.findByUserId(account.getUser().getId()).isPresent();
+        if (userHasAlreadyAnAccount){
+            throw new OperationNonPermittedException(
+                    "The selected user has already an active account",
+                    "Create account..",
+                    "Account service",
+                    "Account Creation"
+            );
+        }
+
+        // generate random IBAN when creating new account else do not update the IBAN..
+        if (dto.getId() == null){
         account.setIban(generateRandomIban());
-        return repository.save(account).getId();
+        }
+        return accountRepository.save(account).getId();
     }
 
     @Override
     public List<AccountDto> findAll() {
-        return repository.findAll().stream().map(AccountDto::fromEntity).collect(Collectors.toList());
+        return accountRepository.findAll().stream().map(AccountDto::fromEntity).collect(Collectors.toList());
     }
 
     @Override
     public AccountDto findById(Integer id) {
-        return repository.findById(id).map(AccountDto::fromEntity).orElseThrow(()-> new EntityNotFoundException("No account was found with the provided ID : " + id));
+        return accountRepository.findById(id).map(AccountDto::fromEntity).orElseThrow(()-> new EntityNotFoundException("No account was found with the provided ID : " + id));
     }
 
     @Override
     public void delete(Integer id) {
         // todo check account to delete
-        repository.deleteById(id);
+        accountRepository.deleteById(id);
 
     }
 
@@ -58,7 +71,7 @@ public class AccountServiceImpl implements AccountService {
         // generate iban
         String iban = Iban.random(CountryCode.MR).toFormattedString();
         //check if iban already exist
-        boolean ibanExist = repository.findByIban(iban).isPresent();
+        boolean ibanExist = accountRepository.findByIban(iban).isPresent();
 
         // if exist --> Generale new iban
         if (ibanExist){
