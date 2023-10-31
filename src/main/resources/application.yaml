@@ -1,1 +1,10 @@
-
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/banking?createDatabaseIfNotExist=true&serverTimezone=UTC
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create
+    database: mysql
