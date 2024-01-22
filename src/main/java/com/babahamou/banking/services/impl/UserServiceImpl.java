@@ -58,7 +58,7 @@ public class UserServiceImpl implements UserService {
     public Integer validateAccount(Integer id) {
 
         User user = userRepository.findById(id)
-                .orElseThrow(()->new EntityNotFoundException("no user was found for user account validation"));
+                .orElseThrow(()->new EntityNotFoundException("No user was found for user account validation"));
         user.setActive(true);
         // create a bank account
         AccountDto account = AccountDto.builder()
